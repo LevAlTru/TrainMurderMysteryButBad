@@ -11,6 +11,7 @@
     "client.BackgroundRendererMixin",
     "client.CameraMixin",
     "client.ClientWorldMixin",
+    "client.PlayerEntityRendererMixin",
     "client.WorldRendererMixin"
   ]
 }
