@@ -1,9 +1,6 @@
 package dev.doctor4t.trainmurdermystery;
 
-import dev.doctor4t.trainmurdermystery.command.GiveRoomKeyCommand;
-import dev.doctor4t.trainmurdermystery.command.ResetTrainCommand;
-import dev.doctor4t.trainmurdermystery.command.SetTrainSpeedCommand;
-import dev.doctor4t.trainmurdermystery.command.StartGameCommand;
+import dev.doctor4t.trainmurdermystery.command.*;
 import dev.doctor4t.trainmurdermystery.game.TMMGameLoop;
 import dev.doctor4t.trainmurdermystery.index.*;
 import dev.doctor4t.trainmurdermystery.util.ShootMuzzleS2CPayload;
@@ -39,6 +36,7 @@ public class TMM implements ModInitializer {
             GiveRoomKeyCommand.register(dispatcher);
             SetTrainSpeedCommand.register(dispatcher);
             StartGameCommand.register(dispatcher);
+            StopGameCommand.register(dispatcher);
             ResetTrainCommand.register(dispatcher);
         }));
 

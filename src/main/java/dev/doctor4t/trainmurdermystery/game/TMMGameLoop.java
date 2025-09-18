@@ -30,6 +30,7 @@ import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.TeleportTarget;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -239,6 +240,30 @@ public class TMMGameLoop {
         }
 
         gameComponent.start();
+    }
+
+    public static void stopGame(ServerWorld world) {
+        TMMComponents.TRAIN.get(world).setTrainSpeed(0);
+        world.setTimeOfDay(6000);
+
+        // reset train
+        resetTrain(world);
+
+        // discard all player bodies
+        for (var body : world.getEntitiesByType(TMMEntities.PLAYER_BODY, playerBodyEntity -> true)) body.discard();
+
+        // reset all players to adventure mode, clear inventory and teleport to spawn
+        var teleportTarget = new TeleportTarget(world, new Vec3d(-872.5, 0, -323), Vec3d.ZERO, 90, 0, TeleportTarget.NO_OP);
+        for (var player : world.getPlayers()) {
+            player.changeGameMode(GameMode.ADVENTURE);
+            player.getInventory().clear();
+            player.teleportTo(teleportTarget);
+        }
+
+        // reset game component
+        var gameComponent = TMMComponents.GAME.get(world);
+        gameComponent.resetLists();
+        gameComponent.stop();
     }
 
     public static boolean isPlayerEliminated(PlayerEntity player) {
