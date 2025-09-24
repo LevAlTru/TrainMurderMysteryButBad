@@ -85,9 +85,11 @@ public class TMM implements ModInitializer {
 //  (new task system is more meant to make players vulnerable to the hitman in a different way from splitting them up)
 // TODO: - Get a snack from restaurant task (food platter block + food items)
 // TODO: - Get a drink from the bar task (drink tray block + custom drink items)
-// TODO: - Sleeping task requiring you to sleep for 10s
-// TODO: - Get some fresh air reduced to going walking outside for 10s
-// TODO: - Change mood down effect from speed to something else (to prevent players being able to innocent each other on an easily observable change)
+// TODO: - Sleeping task requiring you to sleep for 8s
+// TODO: - Get some fresh air reduced to going walking outside for 8s
+// TODO: - Change mood down effect from speed to: (to prevent players being able to innocent each other on an easily observable change)
+// TODO:    - Not seeing bodies at mid mood + a little more shake
+// TODO:    - Randomly seeing players as psycho + even more shake
 
 // TORECORD: Fixing the hitman
 // TORECORD: Remove target system and make the win condition a kill count, turning him into a psycho

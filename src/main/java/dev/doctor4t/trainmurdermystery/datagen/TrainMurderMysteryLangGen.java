@@ -87,5 +87,7 @@ public class TrainMurderMysteryLangGen extends FabricLanguageProvider {
         builder.add("task.drink", "You feel like getting a drink.");
         builder.add("task.eat", "You feel like getting a snack.");
         builder.add("game.player.stung", "You feel something stinging you in your sleep.");
+        builder.add("game.psycho_mode.time", "Psycho Mode: %s");
+        builder.add("game.psycho_mode.over", "Psycho Mode Over!");
     }
 }
