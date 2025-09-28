@@ -1,8 +1,10 @@
 package dev.doctor4t.trainmurdermystery.item;
 
 import dev.doctor4t.trainmurdermystery.block_entity.DoorBlockEntity;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemUsageContext;
 import net.minecraft.sound.SoundCategory;
@@ -20,10 +22,16 @@ public class CrowbarItem extends Item {
         World world = context.getWorld();
         BlockEntity entity = world.getBlockEntity(context.getBlockPos());
         if (!(entity instanceof DoorBlockEntity)) entity = world.getBlockEntity(context.getBlockPos().down());
-        if (entity instanceof DoorBlockEntity door && !door.isBlasted() && context.getPlayer() != null) {
-            if (!context.getPlayer().isCreative()) context.getPlayer().getItemCooldownManager().set(this, 6000);
+        PlayerEntity player = context.getPlayer();
+        if (entity instanceof DoorBlockEntity door && !door.isBlasted() && player != null) {
+            if (!player.isCreative()) player.getItemCooldownManager().set(this, 6000);
             world.playSound(null, context.getBlockPos(), TMMSounds.ITEM_CROWBAR_PRY, SoundCategory.BLOCKS, 2.5f, 1f);
-            context.getPlayer().swingHand(Hand.MAIN_HAND, true);
+            player.swingHand(Hand.MAIN_HAND, true);
+
+            if (!player.isCreative()) {
+                player.getItemCooldownManager().set(this, GameConstants.ITEM_COOLDOWNS.get(this));
+            }
+
             door.blast();
         }
         return super.useOnBlock(context);

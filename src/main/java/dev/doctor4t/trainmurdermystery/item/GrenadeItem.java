@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.item;
 
 import dev.doctor4t.trainmurdermystery.entity.GrenadeEntity;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.index.TMMEntities;
 import dev.doctor4t.trainmurdermystery.index.TMMSounds;
 import net.minecraft.entity.player.PlayerEntity;
@@ -26,6 +27,10 @@ public class GrenadeItem extends Item {
             grenade.setPos(user.getX(), user.getEyeY() - 0.1, user.getZ());
             grenade.setVelocity(user, user.getPitch(), user.getYaw(), 0.0F, 0.5F, 1.0F);
             world.spawnEntity(grenade);
+        }
+
+        if (!user.isCreative()) {
+            user.getItemCooldownManager().set(this, GameConstants.ITEM_COOLDOWNS.get(this));
         }
 
         user.incrementStat(Stats.USED.getOrCreateStat(this));

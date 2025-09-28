@@ -1,6 +1,7 @@
 package dev.doctor4t.trainmurdermystery.item;
 
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
@@ -24,7 +25,9 @@ public class BodyBagItem extends Item {
             }
             if (!user.isCreative()) {
                 user.getStackInHand(hand).decrement(1);
+                user.getItemCooldownManager().set(this, GameConstants.ITEM_COOLDOWNS.get(this));
             }
+
             return ActionResult.SUCCESS;
         }
         return ActionResult.PASS;

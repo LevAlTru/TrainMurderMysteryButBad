@@ -32,7 +32,7 @@ public record KnifeStabPayload(int target) implements CustomPayload {
             GameFunctions.killPlayer(target, true, player);
             target.playSound(TMMSounds.ITEM_KNIFE_STAB, 1.0f, 1.0f);
             player.swingHand(Hand.MAIN_HAND);
-            if (!player.isCreative()) player.getItemCooldownManager().set(TMMItems.KNIFE, GameConstants.KNIFE_COOLDOWN);
+            if (!player.isCreative()) player.getItemCooldownManager().set(TMMItems.KNIFE, GameConstants.ITEM_COOLDOWNS.get(TMMItems.KNIFE));
         }
     }
 }

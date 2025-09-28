@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;
@@ -31,14 +32,15 @@ public record GunShootPayload(int target) implements CustomPayload {
         @Override
         public void receive(@NotNull GunShootPayload payload, ServerPlayNetworking.@NotNull Context context) {
             var player = context.player();
-            if (!player.getMainHandStack().isOf(TMMItems.REVOLVER)) return;
+            Item revolver = TMMItems.REVOLVER;
+            if (!player.getMainHandStack().isOf(revolver)) return;
             if (player.getServerWorld().getEntityById(payload.target()) instanceof PlayerEntity target && target.distanceTo(player) < 65.0) {
                 var game = TMMComponents.GAME.get(player.getWorld());
                 if (game.isCivilian(target) && !player.isCreative()) {
                     PlayerMoodComponent.KEY.get(player).setMood(0);
                     Scheduler.schedule(() -> {
-                                player.getInventory().remove((s) -> s.isOf(TMMItems.REVOLVER), 1, player.getInventory());
-                                ItemEntity item = player.dropItem(TMMItems.REVOLVER.getDefaultStack(), false, false);
+                                player.getInventory().remove((s) -> s.isOf(revolver), 1, player.getInventory());
+                                ItemEntity item = player.dropItem(revolver.getDefaultStack(), false, false);
                                 item.setPickupDelay(10);
                                 item.setThrower(player);
                                 ServerPlayNetworking.send(player, new GunDropPayload());
@@ -53,7 +55,7 @@ public record GunShootPayload(int target) implements CustomPayload {
             ServerPlayNetworking.send(player, new ShootMuzzleS2CPayload(player.getUuidAsString()));
             player.getWorld().playSound(null, player.getX(), player.getEyeY(), player.getZ(), TMMSounds.ITEM_REVOLVER_SHOOT, SoundCategory.PLAYERS, 5f, 1f + player.getRandom().nextFloat() * .1f - .05f);
             if (!player.isCreative())
-                player.getItemCooldownManager().set(TMMItems.REVOLVER, GameConstants.REVOLVER_COOLDOWN);
+                player.getItemCooldownManager().set(revolver, GameConstants.ITEM_COOLDOWNS.get(revolver));
         }
     }
 }

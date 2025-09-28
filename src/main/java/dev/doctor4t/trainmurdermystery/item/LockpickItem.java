@@ -32,8 +32,9 @@ public class LockpickItem extends Item {
                 if (player.isSneaking()) {
                     entity.jam();
 
-                    if (!player.isCreative())
-                        player.getItemCooldownManager().set(this, GameConstants.LOCKPICK_JAM_COOLDOWN);
+                    if (!player.isCreative()) {
+                        player.getItemCooldownManager().set(this, GameConstants.ITEM_COOLDOWNS.get(this));
+                    }
 
                     if (!world.isClient)
                         world.playSound(null, lowerPos.getX() + .5f, lowerPos.getY() + 1, lowerPos.getZ() + .5f, TMMSounds.ITEM_LOCKPICK_DOOR, SoundCategory.BLOCKS, 1f, 1f);
