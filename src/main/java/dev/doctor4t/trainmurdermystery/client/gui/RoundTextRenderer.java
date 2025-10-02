@@ -3,6 +3,7 @@ package dev.doctor4t.trainmurdermystery.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.doctor4t.trainmurdermystery.cca.PlayerEndInfoComponent;
 import dev.doctor4t.trainmurdermystery.cca.TMMComponents;
+import dev.doctor4t.trainmurdermystery.game.GameConstants;
 import dev.doctor4t.trainmurdermystery.game.GameFunctions;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
@@ -16,7 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 public class RoundTextRenderer {
-    private static final int WELCOME_DURATION = 200;
+    private static final int WELCOME_DURATION = 200 + GameConstants.FADE_TIME * 2 + GameConstants.FADE_PAUSE;
     private static final int END_DURATION = 200;
     private static RoleAnnouncementText role = RoleAnnouncementText.CIVILIAN;
     private static int welcomeTime = 0;
