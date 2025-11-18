@@ -51,7 +51,7 @@ public interface GameConstants {
 
     // Game areas
     Vec3d SPAWN_POS = new Vec3d(-872.5, 0, -323);
-    Box READY_AREA = new Box(-1017, -1, -364, -813, 3, -357);
+    Box READY_AREA = new Box(-1017, -1, -363.5f, -813, 3, -357.5f);
     Vec3d PLAY_OFFSET = new Vec3d(963, 121, -175);
     Consumer<ServerPlayerEntity> SPECTATOR_TP = serverPlayerEntity -> serverPlayerEntity.teleport(serverPlayerEntity.getServerWorld(), -68, 133, -535.5, -90, 15);
     Box PLAY_AREA = new Box(-140, 118, -535.5f - 15, 230, 200, -535.5f + 15);
@@ -75,8 +75,8 @@ public interface GameConstants {
     List<ShopEntry> SHOP_ENTRIES = List.of(
             new ShopEntry(TMMItems.KNIFE.getDefaultStack(), 100, ShopEntry.Type.WEAPON),
             new ShopEntry(TMMItems.REVOLVER.getDefaultStack(), 300, ShopEntry.Type.WEAPON),
-            new ShopEntry(TMMItems.GRENADE.getDefaultStack(), 500, ShopEntry.Type.WEAPON),
-            new ShopEntry(TMMItems.PSYCHO_MODE.getDefaultStack(), 250, ShopEntry.Type.WEAPON) {
+            new ShopEntry(TMMItems.GRENADE.getDefaultStack(), 350, ShopEntry.Type.WEAPON),
+            new ShopEntry(TMMItems.PSYCHO_MODE.getDefaultStack(), 300, ShopEntry.Type.WEAPON) {
                 @Override
                 public boolean onBuy(@NotNull PlayerEntity player) {
                     return PlayerShopComponent.usePsychoMode(player);
@@ -87,7 +87,7 @@ public interface GameConstants {
             new ShopEntry(TMMItems.FIRECRACKER.getDefaultStack(), 10, ShopEntry.Type.TOOL),
             new ShopEntry(TMMItems.LOCKPICK.getDefaultStack(), 50, ShopEntry.Type.TOOL),
             new ShopEntry(TMMItems.CROWBAR.getDefaultStack(), 25, ShopEntry.Type.TOOL),
-            new ShopEntry(TMMItems.BODY_BAG.getDefaultStack(), 300, ShopEntry.Type.TOOL),
+            new ShopEntry(TMMItems.BODY_BAG.getDefaultStack(), 200, ShopEntry.Type.TOOL),
             new ShopEntry(TMMItems.BLACKOUT.getDefaultStack(), 200, ShopEntry.Type.TOOL) {
                 @Override
                 public boolean onBuy(@NotNull PlayerEntity player) {
