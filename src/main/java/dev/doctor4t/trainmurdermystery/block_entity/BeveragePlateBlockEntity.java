@@ -40,7 +40,7 @@ public class BeveragePlateBlockEntity extends BlockEntity {
     public static <T extends BlockEntity> void clientTick(World world, BlockPos pos, BlockState state, T t) {
         if (!(t instanceof BeveragePlateBlockEntity tray)) return;
 //        if ((!TMMClient.isKiller() && !CanSeePoison.EVENT.invoker().visible(MinecraftClient.getInstance().player)) || tray.poisoner == null)
-        if ((!TMMClient.isKiller()) || tray.poisoner == null)
+        if (!TMMClient.isKiller() || !TMMClient.isPlayerSpectatingOrCreative() || tray.poisoner == null)
             return;
         if (world.getRandom().nextBetween(0, 20) < 17) return;
         world.addParticle(
