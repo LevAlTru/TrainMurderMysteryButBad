@@ -17,15 +17,15 @@ public abstract class KeyBindingMixin {
     @Unique
     private boolean shouldSuppressKey() {
         if (TMMClient.isPlayerAliveAndInSurvival()) {
-            if (TMMClient.gameComponent.isRunning()) {
-                if (this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey)) return true;
-            }
             return this.equals(MinecraftClient.getInstance().options.swapHandsKey) ||
                     this.equals(MinecraftClient.getInstance().options.chatKey) ||
                     this.equals(MinecraftClient.getInstance().options.commandKey) ||
                     this.equals(MinecraftClient.getInstance().options.jumpKey) ||
                     this.equals(MinecraftClient.getInstance().options.dropKey) ||
                     this.equals(MinecraftClient.getInstance().options.advancementsKey);
+        }
+        if (TMMClient.isPlayerAliveAndInSurvival() && TMMClient.gameComponent.isRunning()) {
+            return this.equals(MinecraftClient.getInstance().options.togglePerspectiveKey);
         }
         return false;
     }
