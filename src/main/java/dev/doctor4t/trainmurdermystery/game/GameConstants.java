@@ -1,5 +1,6 @@
 package dev.doctor4t.trainmurdermystery.game;
 
+import dev.doctor4t.trainmurdermystery.TMM;
 import dev.doctor4t.trainmurdermystery.cca.PlayerShopComponent;
 import dev.doctor4t.trainmurdermystery.index.TMMItems;
 import dev.doctor4t.trainmurdermystery.util.ShopEntry;
@@ -7,6 +8,7 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
@@ -47,15 +49,6 @@ public interface GameConstants {
     // Corpses
     int TIME_TO_DECOMPOSITION = getInTicks(1, 0);
     int DECOMPOSING_TIME = getInTicks(4, 0);
-
-    // Game areas
-    Vec3d SPAWN_POS = new Vec3d(-872.5, 0, -323);
-    Box READY_AREA = new Box(-1017, -1, -363.5f, -813, 3, -357.5f);
-    Vec3d PLAY_OFFSET = new Vec3d(963, 121, -175);
-    Consumer<ServerPlayerEntity> SPECTATOR_TP = serverPlayerEntity -> serverPlayerEntity.teleport(serverPlayerEntity.getServerWorld(), -68, 133, -535.5, -90, 15);
-    Box PLAY_AREA = new Box(-140, 118, -535.5f - 15, 230, 200, -535.5f + 15);
-    Box BACKUP_TRAIN_LOCATION = new Box(-57, 64, -531, 177, 74, -541);
-    Box TRAIN_LOCATION = BACKUP_TRAIN_LOCATION.offset(0, 55, 0);
 
     // Task Variables
     float MOOD_GAIN = 0.5f;
@@ -114,5 +107,15 @@ public interface GameConstants {
 
     static int getInTicks(int minutes, int seconds) {
         return (minutes * 60 + seconds) * 20;
+    }
+
+    interface DeathReasons {
+        Identifier GENERIC = TMM.id("generic");
+        Identifier KNIFE = TMM.id("knife_stab");
+        Identifier GUN = TMM.id("gun_shot");
+        Identifier BAT = TMM.id("bat_hit");
+        Identifier GRENADE = TMM.id("grenade");
+        Identifier POISON = TMM.id("poison");
+        Identifier FELL_OUT_OF_TRAIN = TMM.id("fell_out_of_train");
     }
 }
