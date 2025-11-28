@@ -348,5 +348,6 @@
   "trainmurdermystery.midnightconfig.snowOptLevel.tooltip": "'Optimized' may cause issues on custom maps.",
   "trainmurdermystery.midnightconfig.enum.SnowModeConfig.NO_OPTIMIZATION": "Default",
   "trainmurdermystery.midnightconfig.enum.SnowModeConfig.STRONG_OPTIMIZATION": "Optimized",
-  "trainmurdermystery.midnightconfig.enum.SnowModeConfig.TURN_OFF": "No particles"
+  "trainmurdermystery.midnightconfig.enum.SnowModeConfig.TURN_OFF": "No particles",
+  "argument.roles.invalid": "Invalid role argument"
 }
