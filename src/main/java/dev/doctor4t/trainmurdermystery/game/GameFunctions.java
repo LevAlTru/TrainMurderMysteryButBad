@@ -6,6 +6,8 @@ import dev.doctor4t.trainmurdermystery.api.GameMode;
 import dev.doctor4t.trainmurdermystery.api.TMMGameModes;
 import dev.doctor4t.trainmurdermystery.cca.*;
 import dev.doctor4t.trainmurdermystery.compat.TrainVoicePlugin;
+import dev.doctor4t.trainmurdermystery.entity.FirecrackerEntity;
+import dev.doctor4t.trainmurdermystery.entity.NoteEntity;
 import dev.doctor4t.trainmurdermystery.entity.PlayerBodyEntity;
 import dev.doctor4t.trainmurdermystery.event.AllowPlayerDeath;
 import dev.doctor4t.trainmurdermystery.event.ShouldDropOnDeath;
@@ -26,6 +28,7 @@ import net.minecraft.component.type.LoreComponent;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -85,13 +88,14 @@ public class GameFunctions {
     }
 
     public static void startGame(ServerWorld world, GameMode gameMode, int time) {
-        GameWorldComponent component = GameWorldComponent.KEY.get(world);
-        int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> (GameConstants.READY_AREA.contains(serverPlayerEntity.getPos()))).count());
-        component.setGameMode(gameMode);
+        GameWorldComponent game = GameWorldComponent.KEY.get(world);
+        AreasWorldComponent areas = AreasWorldComponent.KEY.get(world);
+        int playerCount = Math.toIntExact(world.getPlayers().stream().filter(serverPlayerEntity -> (areas.getReadyArea().contains(serverPlayerEntity.getPos()))).count());
+        game.setGameMode(gameMode);
         GameTimeComponent.KEY.get(world).setResetTime(time);
 
         if (playerCount >= gameMode.minPlayerCount) {
-            component.setGameStatus(GameWorldComponent.GameStatus.STARTING);
+            game.setGameStatus(GameWorldComponent.GameStatus.STARTING);
         } else {
             for (ServerPlayerEntity player : world.getPlayers()) {
                 player.sendMessage(Text.translatable("game.start_error.not_enough_players", gameMode.minPlayerCount), true);
@@ -115,6 +119,8 @@ public class GameFunctions {
     }
 
     private static void baseInitialize(ServerWorld serverWorld, GameWorldComponent gameComponent, List<ServerPlayerEntity> players) {
+        AreasWorldComponent areas = AreasWorldComponent.KEY.get(serverWorld);
+
         TrainWorldComponent.KEY.get(serverWorld).reset();
         WorldBlackoutComponent.KEY.get(serverWorld).reset();
 
@@ -136,18 +142,20 @@ public class GameFunctions {
         // teleport players to play area
         for (ServerPlayerEntity player : players) {
             player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
-            Vec3d pos = player.getPos().add(GameConstants.PLAY_OFFSET);
+            Vec3d pos = player.getPos().add(areas.getPlayAreaOffset());
             player.requestTeleport(pos.getX(), pos.getY() + 1, pos.getZ());
         }
 
         // teleport non playing players
         for (ServerPlayerEntity player : serverWorld.getPlayers(serverPlayerEntity -> !players.contains(serverPlayerEntity))) {
             player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
-            GameConstants.SPECTATOR_TP.accept(player);
+
+            AreasWorldComponent.PosWithOrientation spectatorSpawnPos = areas.getSpectatorSpawnPos();
+            player.teleport(serverWorld, spectatorSpawnPos.pos.getX(), spectatorSpawnPos.pos.getY(), spectatorSpawnPos.pos.getZ(), spectatorSpawnPos.yaw, spectatorSpawnPos.pitch);
         }
 
         // clear items, clear previous game data
-        for (var serverPlayerEntity : players) {
+        for (ServerPlayerEntity serverPlayerEntity : players) {
             serverPlayerEntity.getInventory().clear();
             PlayerMoodComponent.KEY.get(serverPlayerEntity).reset();
             PlayerShopComponent.KEY.get(serverPlayerEntity).reset();
@@ -158,8 +166,8 @@ public class GameFunctions {
             TrainVoicePlugin.resetPlayer(serverPlayerEntity.getUuid());
 
             // remove item cooldowns
-            var copy = new HashSet<>(serverPlayerEntity.getItemCooldownManager().entries.keySet());
-            for (var item : copy) serverPlayerEntity.getItemCooldownManager().remove(item);
+            HashSet<Item> copy = new HashSet<>(serverPlayerEntity.getItemCooldownManager().entries.keySet());
+            for (Item item : copy) serverPlayerEntity.getItemCooldownManager().remove(item);
         }
         gameComponent.clearRoleMap();
         GameTimeComponent.KEY.get(serverWorld).reset();
@@ -215,7 +223,8 @@ public class GameFunctions {
     }
 
     private static List<ServerPlayerEntity> getReadyPlayerList(ServerWorld serverWorld) {
-        List<ServerPlayerEntity> players = serverWorld.getPlayers(serverPlayerEntity -> GameConstants.READY_AREA.contains(serverPlayerEntity.getPos()));
+        AreasWorldComponent areas =AreasWorldComponent.KEY.get(serverWorld);
+        List<ServerPlayerEntity> players = serverWorld.getPlayers(serverPlayerEntity -> areas.getReadyArea().contains(serverPlayerEntity.getPos()));
         return players;
     }
 
@@ -229,12 +238,12 @@ public class GameFunctions {
         trainComponent.setTimeOfDay(TrainWorldComponent.TimeOfDay.DAY);
 
         // discard all player bodies
-        for (var body : world.getEntitiesByType(TMMEntities.PLAYER_BODY, playerBodyEntity -> true)) body.discard();
-        for (var entity : world.getEntitiesByType(TMMEntities.FIRECRACKER, entity -> true)) entity.discard();
-        for (var entity : world.getEntitiesByType(TMMEntities.NOTE, entity -> true)) entity.discard();
+        for (PlayerBodyEntity body : world.getEntitiesByType(TMMEntities.PLAYER_BODY, playerBodyEntity -> true)) body.discard();
+        for (FirecrackerEntity entity : world.getEntitiesByType(TMMEntities.FIRECRACKER, entity -> true)) entity.discard();
+        for (NoteEntity entity : world.getEntitiesByType(TMMEntities.NOTE, entity -> true)) entity.discard();
 
         // reset all players
-        for (var player : world.getPlayers()) {
+        for (ServerPlayerEntity player : world.getPlayers()) {
             resetPlayer(player);
         }
 
@@ -259,7 +268,8 @@ public class GameFunctions {
 
         player.changeGameMode(net.minecraft.world.GameMode.ADVENTURE);
         player.wakeUp();
-        var teleportTarget = new TeleportTarget(player.getServerWorld(), GameConstants.SPAWN_POS, Vec3d.ZERO, 90, 0, TeleportTarget.NO_OP);
+        AreasWorldComponent.PosWithOrientation spawnPos = AreasWorldComponent.KEY.get(player.getWorld()).getSpawnPos();
+        TeleportTarget teleportTarget = new TeleportTarget(player.getServerWorld(), spawnPos.pos, Vec3d.ZERO, spawnPos.yaw, spawnPos.pitch, TeleportTarget.NO_OP);
         player.teleportTo(teleportTarget);
     }
 
@@ -267,14 +277,15 @@ public class GameFunctions {
         return player == null || !player.isAlive() || player.isCreative() || player.isSpectator();
     }
 
+    @SuppressWarnings("unused")
     public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer) {
-        killPlayer(victim, spawnBody, killer, TMM.id("generic"));
+        killPlayer(victim, spawnBody, killer, GameConstants.DeathReasons.GENERIC);
     }
 
-    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier identifier) {
-        var component = PlayerPsychoComponent.KEY.get(victim);
+    public static void killPlayer(PlayerEntity victim, boolean spawnBody, @Nullable PlayerEntity killer, Identifier deathReason) {
+        PlayerPsychoComponent component = PlayerPsychoComponent.KEY.get(victim);
 
-        if (!AllowPlayerDeath.EVENT.invoker().allowDeath(victim, identifier)) return;
+        if (!AllowPlayerDeath.EVENT.invoker().allowDeath(victim, deathReason)) return;
         if (component.getPsychoTicks() > 0) {
             if (component.getArmour() > 0) {
                 component.setArmour(component.getArmour() - 1);
@@ -292,7 +303,7 @@ public class GameFunctions {
             return;
         }
 
-        if (killer != null) {
+        if (killer != null && GameWorldComponent.KEY.get(killer.getWorld()).canUseKillerFeatures(killer)) {
             PlayerShopComponent.KEY.get(killer).addToBalance(GameConstants.MONEY_PER_KILL);
 
             // replenish derringer
@@ -310,10 +321,10 @@ public class GameFunctions {
         PlayerMoodComponent.KEY.get(victim).reset();
 
         if (spawnBody) {
-            var body = TMMEntities.PLAYER_BODY.create(victim.getWorld());
+            PlayerBodyEntity body = TMMEntities.PLAYER_BODY.create(victim.getWorld());
             if (body != null) {
                 body.setPlayerUuid(victim.getUuid());
-                var spawnPos = victim.getPos().add(victim.getRotationVector().normalize().multiply(1));
+                Vec3d spawnPos = victim.getPos().add(victim.getRotationVector().normalize().multiply(1));
                 body.refreshPositionAndAngles(spawnPos.getX(), victim.getY(), spawnPos.getZ(), victim.getHeadYaw(), 0f);
                 body.setYaw(victim.getHeadYaw());
                 body.setHeadYaw(victim.getHeadYaw());
@@ -322,8 +333,8 @@ public class GameFunctions {
         }
 
         for (List<ItemStack> list : victim.getInventory().combinedInventory) {
-            for (var i = 0; i < list.size(); i++) {
-                var stack = list.get(i);
+            for (int i = 0; i < list.size(); i++) {
+                ItemStack stack = list.get(i);
                 if (shouldDropOnDeath(stack)) {
                     victim.dropItem(stack, true, false);
                     list.set(i, ItemStack.EMPTY);
@@ -331,7 +342,7 @@ public class GameFunctions {
             }
         }
 
-        var gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
+        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(victim.getWorld());
         if (gameWorldComponent.isInnocent(victim)) {
             GameTimeComponent.KEY.get(victim.getWorld()).addTime(GameConstants.TIME_ON_CIVILIAN_KILL);
         }
@@ -376,10 +387,11 @@ public class GameFunctions {
     // returns whether another reset should be attempted
     public static boolean tryResetTrain(ServerWorld serverWorld) {
         if (serverWorld.getServer().getOverworld().equals(serverWorld)) {
-            BlockPos backupMinPos = BlockPos.ofFloored(GameConstants.BACKUP_TRAIN_LOCATION.getMinPos());
-            BlockPos backupMaxPos = BlockPos.ofFloored(GameConstants.BACKUP_TRAIN_LOCATION.getMaxPos());
+            AreasWorldComponent areas = AreasWorldComponent.KEY.get(serverWorld);
+            BlockPos backupMinPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMinPos());
+            BlockPos backupMaxPos = BlockPos.ofFloored(areas.getResetTemplateArea().getMaxPos());
             BlockBox backupTrainBox = BlockBox.create(backupMinPos, backupMaxPos);
-            BlockPos trainMinPos = BlockPos.ofFloored(GameConstants.TRAIN_LOCATION.getMinPos());
+            BlockPos trainMinPos = BlockPos.ofFloored(areas.getResetPasteArea().getMinPos());
             BlockPos trainMaxPos = trainMinPos.add(backupTrainBox.getDimensions());
             BlockBox trainBox = BlockBox.create(trainMinPos, trainMaxPos);
 
@@ -472,8 +484,8 @@ public class GameFunctions {
             for (ItemEntity item : serverWorld.getEntitiesByType(EntityType.ITEM, playerBodyEntity -> true)) {
                 item.discard();
             }
-            for (var entity : serverWorld.getEntitiesByType(TMMEntities.FIRECRACKER, entity -> true)) entity.discard();
-            for (var entity : serverWorld.getEntitiesByType(TMMEntities.NOTE, entity -> true)) entity.discard();
+            for (FirecrackerEntity entity : serverWorld.getEntitiesByType(TMMEntities.FIRECRACKER, entity -> true)) entity.discard();
+            for (NoteEntity entity : serverWorld.getEntitiesByType(TMMEntities.NOTE, entity -> true)) entity.discard();
 
 
             TMM.LOGGER.info("Train reset successful.");
@@ -483,8 +495,9 @@ public class GameFunctions {
     }
 
     public static int getReadyPlayerCount(World world) {
-        var players = world.getPlayers();
-        return Math.toIntExact(players.stream().filter(p -> GameConstants.READY_AREA.contains(p.getPos())).count());
+        List<? extends PlayerEntity> players = world.getPlayers();
+        AreasWorldComponent areas = AreasWorldComponent.KEY.get(world);
+        return Math.toIntExact(players.stream().filter(p -> areas.getReadyArea().contains(p.getPos())).count());
     }
 
     public enum WinStatus {

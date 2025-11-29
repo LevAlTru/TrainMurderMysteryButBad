@@ -65,6 +65,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
     private UUID looseEndWinner;
 
+    private float backfireChance = 0f;
+
     public GameWorldComponent(World world) {
         this.world = world;
     }
@@ -168,7 +170,7 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         return getRole(player) != null && getRole(player).canUseKiller();
     }
     public boolean isInnocent(@NotNull PlayerEntity player) {
-        return getRole(player) == null || getRole(player).isInnocent();
+        return getRole(player) != null && getRole(player).isInnocent();
     }
 
     public void clearRoleMap() {
@@ -219,6 +221,15 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         this.lockedToSupporters = lockedToSupporters;
     }
 
+    public float getBackfireChance() {
+        return backfireChance;
+    }
+
+    public void setBackfireChance(float backfireChance) {
+        this.backfireChance = backfireChance;
+        this.sync();
+    }
+
     @Override
     public void readFromNbt(@NotNull NbtCompound nbtCompound, RegistryWrapper.WrapperLookup wrapperLookup) {
         this.lockedToSupporters = nbtCompound.getBoolean("LockedToSupporters");
@@ -229,6 +240,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
 
         this.fade = nbtCompound.getInt("Fade");
         this.psychosActive = nbtCompound.getInt("PsychosActive");
+
+        this.backfireChance = nbtCompound.getFloat("BackfireChance");
 
         for (Role role : TMMRoles.ROLES) {
             this.setRoles(uuidListFromNbt(nbtCompound, role.identifier().toString()), role);
@@ -260,6 +273,8 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         nbtCompound.putInt("Fade", fade);
         nbtCompound.putInt("PsychosActive", psychosActive);
 
+        nbtCompound.putFloat("BackfireChance", backfireChance);
+
         for (Role role : TMMRoles.ROLES) {
             nbtCompound.put(role.identifier().toString(), nbtFromUuidList(getAllWithRole(role)));
         }
@@ -289,11 +304,15 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
     public void serverTick() {
         tickCommon();
 
-        ServerWorld serverWorld = (ServerWorld) this.world;
+        if (!(this.world instanceof ServerWorld serverWorld)) {
+            return;
+        }
+
+        AreasWorldComponent areas = AreasWorldComponent.KEY.get(serverWorld);
 
         // attempt to reset the play area
         if (--ticksUntilNextResetAttempt == 0) {
-            if (GameFunctions.tryResetTrain((ServerWorld) this.world)) {
+            if (GameFunctions.tryResetTrain(serverWorld)) {
                 queueTrainReset();
             } else {
                 ticksUntilNextResetAttempt = -1;
@@ -301,9 +320,9 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
         }
 
         // if not running and spectators or not in lobby reset them
-        if (world.getTime() % 20 == 0) {
+        if (serverWorld.getTime() % 20 == 0) {
             for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                if (!isRunning() && (player.isSpectator() && serverWorld.getServer().getPermissionLevel(player.getGameProfile()) < 2 || (GameFunctions.isPlayerAliveAndSurvival(player) && GameConstants.PLAY_AREA.contains(player.getPos())))) {
+                if (!isRunning() && (player.isSpectator() && serverWorld.getServer().getPermissionLevel(player.getGameProfile()) < 2 || (GameFunctions.isPlayerAliveAndSurvival(player) && areas.playArea.contains(player.getPos())))) {
                     GameFunctions.resetPlayer(player);
                 }
             }
@@ -316,25 +335,34 @@ public class GameWorldComponent implements AutoSyncedComponent, ServerTickingCom
             if (trainComponent.getSpeed() > 0) {
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
                     if (!GameFunctions.isPlayerAliveAndSurvival(player) && isBound()) {
-                        GameFunctions.limitPlayerToBox(player, GameConstants.PLAY_AREA);
+                        GameFunctions.limitPlayerToBox(player, areas.playArea);
                     }
                 }
             }
 
             if (this.isRunning()) {
-                // kill players who fell off the train
                 for (ServerPlayerEntity player : serverWorld.getPlayers()) {
-                    if (GameFunctions.isPlayerAliveAndSurvival(player) && player.getY() < GameConstants.PLAY_AREA.minY) {
-                        GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof PlayerEntity killerPlayer ? killerPlayer : null, TMM.id("fell_out_of_train"));
+                    if (GameFunctions.isPlayerAliveAndSurvival(player)) {
+                        // kill players who fell off the train
+                        if (player.getY() < areas.playArea.minY) {
+                            GameFunctions.killPlayer(player, false, player.getLastAttacker() instanceof PlayerEntity killerPlayer ? killerPlayer : null, GameConstants.DeathReasons.FELL_OUT_OF_TRAIN);
+                        }
+
+                        // put players with no role in spectator mode
+                        if (GameWorldComponent.KEY.get(world).getRole(player) == null) {
+                            player.changeGameMode(net.minecraft.world.GameMode.SPECTATOR);
+                        }
                     }
+
                 }
+
 
                 // run game loop logic
                 gameMode.tickServerGameLoop(serverWorld, this);
             }
         }
 
-        if (world.getTime() % 20 == 0) {
+        if (serverWorld.getTime() % 20 == 0) {
             this.sync();
         }
     }
