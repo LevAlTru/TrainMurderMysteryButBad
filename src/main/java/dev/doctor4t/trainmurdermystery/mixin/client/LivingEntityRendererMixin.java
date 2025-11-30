@@ -45,7 +45,12 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, M extend
 
     @Inject(method = "isShaking", at = @At("HEAD"), cancellable = true)
     public void tmm$shakeWhenPoisoned(T entity, CallbackInfoReturnable<Boolean> cir) {
-        if (entity instanceof PlayerEntity player && PlayerPoisonComponent.KEY.get(player).poisonTicks < 400)
-            cir.setReturnValue(true);
+        if (entity instanceof PlayerEntity player) {
+            try {
+                int poisonTicks = PlayerPoisonComponent.KEY.get(player).poisonTicks;
+                if (poisonTicks > 0 && poisonTicks < 400) cir.setReturnValue(true);
+            } catch (Exception e) {
+            }
+        }
     }
 }
