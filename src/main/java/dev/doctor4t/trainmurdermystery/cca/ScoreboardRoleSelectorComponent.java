@@ -36,7 +36,6 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
     public final Map<UUID, Integer> vigilanteRounds = new HashMap<>();
     public final List<UUID> forcedKillers = new ArrayList<>();
     public final List<UUID> forcedVigilantes = new ArrayList<>();
-    public double specialRoleCount = 0;
 
     public ScoreboardRoleSelectorComponent(Scoreboard scoreboard, @Nullable MinecraftServer server) {
         this.scoreboard = scoreboard;
@@ -232,7 +231,6 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
             vigilanteRounds.add(compound);
         }
         tag.put("vigilanteRounds", vigilanteRounds);
-        tag.putDouble("specialRoleCount", specialRoleCount);
     }
 
     @Override
@@ -249,6 +247,5 @@ public class ScoreboardRoleSelectorComponent implements AutoSyncedComponent {
             if (!compound.contains("uuid") || !compound.contains("times")) continue;
             this.vigilanteRounds.put(compound.getUuid("uuid"), compound.getInt("times"));
         }
-        specialRoleCount = tag.getDouble("specialRoleCount");
     }
 }
