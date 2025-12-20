@@ -60,11 +60,8 @@ public abstract class ClientWorldMixin extends World {
     }
 
     @Inject(method = "tick", at = @At("TAIL"))
-    public void tmm$addSnowflakes(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
-        if (WatheConfig.snowOptLevel != WatheConfig.SnowModeConfig.TURN_OFF &&
-                WatheClient.isTrainMoving() &&
-                WatheClient.getTrainComponent().isSnowing()
-        ) {
+    public void wathe$addSnowflakes(BooleanSupplier shouldKeepTicking, CallbackInfo ci) {
+        if (WatheClient.isTrainMoving() && WatheClient.getTrainComponent().isSnowing() && WatheConfig.snowOptLevel != WatheConfig.SnowModeConfig.TURN_OFF) {
             ClientPlayerEntity player = client.player;
             Random random = player.getRandom();
             for (int i = 0; i < 200; i++) {

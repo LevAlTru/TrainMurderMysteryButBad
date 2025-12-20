@@ -25,7 +25,7 @@ public class WatheConfig extends MidnightConfig {
 
     public enum SnowModeConfig {
         NO_OPTIMIZATION,  // Standard behavior: checking if the particle hit the block.
-        STRONG_OPTIMIZATION, // replaces the calculation against the terrain to the calculation against a box that approximates the train
-        TURN_OFF, // Client side '/tmm:setVisual snow false'
+        BOX_COLLIDER, // replaces the calculation against the terrain to the calculation against a box that approximates the train
+        TURN_OFF, // Client side '/wathe:setVisual snow false'
     }
 }

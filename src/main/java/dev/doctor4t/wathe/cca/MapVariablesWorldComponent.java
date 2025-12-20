@@ -37,6 +37,8 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
     Box resetTemplateArea = new Box(-57, 64, -531, 177, 74, -541);
     Vec3i resetPasteOffset = new Vec3i(0, 55, 0);
 
+    Box snowflakeCollider = new Box(-41.5, 126.0, -538.5, 169.5, 120, -532.5);
+
     public PosWithOrientation getSpawnPos() {
         return spawnPos;
     }
@@ -100,6 +102,15 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
         this.sync();
     }
 
+    public Box getSnowflakeCollider() {
+        return snowflakeCollider;
+    }
+
+    public void setSnowflakeCollider(Box snowflakeCollider) {
+        this.snowflakeCollider = snowflakeCollider;
+        this.sync();
+    }
+  
     private int maxRoomKey = 7;
     private float ambientBrightness = 1f;
     public ArrayList<PlayerMoodComponent.Task> offTasks = new ArrayList<>();
@@ -110,7 +121,7 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
 
     public void setMaxRoomKey(int maxRoomKey) {
         this.maxRoomKey = maxRoomKey;
-        sync();
+        this.sync();
     }
 
     public float getAmbientBrightness() {
@@ -119,7 +130,7 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
 
     public void setAmbientBrightness(float ambientBrightness) {
         this.ambientBrightness = ambientBrightness;
-        sync();
+        this.sync();
     }
 
     @Override
@@ -131,6 +142,8 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
         this.playArea = getBoxFromNbt(tag, "playArea");
         this.resetTemplateArea = getBoxFromNbt(tag, "resetTemplateArea");
         this.resetPasteOffset = getVec3iFromNbt(tag, "resetPasteOffset");
+        if (tag.contains("snowflakeColliderMinX")) // make sure the map had this feature before setting it, otherwise the collider will be (0,0,0), (0,0,0)
+            this.snowflakeCollider = getBoxFromNbt(tag, "snowflakeCollider");
         if (tag.contains("maxRoomKey"))
             maxRoomKey = tag.getInt("maxRoomKey");
         if (tag.contains("ambientBrightness"))
@@ -153,7 +166,7 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
         writeBoxToNbt(tag, this.playArea, "playArea");
         writeBoxToNbt(tag, this.resetTemplateArea, "resetTemplateArea");
         writeVec3iToNbt(tag, this.resetPasteOffset, "resetPasteOffset");
-
+        writeBoxToNbt(tag, this.snowflakeCollider, "snowflakeCollider");
         tag.putInt("maxRoomKey", maxRoomKey);
         tag.putFloat("ambientBrightness", ambientBrightness);
         tag.putIntArray("offTasks", offTasks.stream().map(Enum::ordinal).toList());

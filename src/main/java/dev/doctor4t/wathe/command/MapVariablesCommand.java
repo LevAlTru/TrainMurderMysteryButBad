@@ -150,6 +150,20 @@ public class MapVariablesCommand {
                                                 )
                                         )
                                 )
+                                .then(CommandManager.literal("snowflakeCollider")
+                                        .then(CommandManager.argument("from", Vec3ArgumentType.vec3())
+                                                .then(CommandManager.argument("to", Vec3ArgumentType.vec3())
+                                                        .executes(
+                                                                context -> setBox(
+                                                                        context.getSource(), "snowflakeCollider",
+                                                                        Vec3ArgumentType.getPosArgument(context, "from"),
+                                                                        Vec3ArgumentType.getPosArgument(context, "to"),
+                                                                        box -> getMapVarsComponent(context).setSnowflakeCollider(box)
+                                                                )
+                                                        )
+                                                )
+                                        )
+                                )
                         )
                         .then(CommandManager.literal("tasks")
                                 .executes(ctx -> print(ctx, Arrays.stream(PlayerMoodComponent.Task.values()).map(it -> it.toString() + (getMapVarsComponent(ctx).offTasks.contains(it) ? ":off" : "")).collect(Collectors.joining(", "))))
