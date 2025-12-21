@@ -21,6 +21,7 @@ public class PlayerWetComponent implements AutoSyncedComponent, ServerTickingCom
     private final PlayerEntity player;
 
     public int wetTicks = -1;
+    public int underShowerTicks = -1;
 
     public PlayerWetComponent(PlayerEntity player) {
         this.player = player;
@@ -29,18 +30,22 @@ public class PlayerWetComponent implements AutoSyncedComponent, ServerTickingCom
     @Override
     public void writeToNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         tag.putInt("wetTicks", this.wetTicks);
+        tag.putInt("underShowerTicks", this.underShowerTicks);
     }
 
     @Override
     public void readFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         this.wetTicks = tag.getInt("wetTicks");
+        this.underShowerTicks = tag.getInt("underShowerTicks");
     }
 
     @Override
     public void clientTick() {
+        if (this.underShowerTicks >= 0) this.underShowerTicks--;
         if (this.wetTicks >= 0) {
             this.wetTicks--;
             Random r = player.getRandom();
+            if (r.nextDouble() > wetTicks / 100.0) return;
             Box b = player.getBoundingBox();
             player.getWorld().addParticle(ParticleTypes.FALLING_WATER,
                     MathHelper.lerp(r.nextDouble(), b.minX, b.maxX),
@@ -59,13 +64,23 @@ public class PlayerWetComponent implements AutoSyncedComponent, ServerTickingCom
         }
     }
 
+    public boolean isWet() {
+        return wetTicks > 0;
+    }
+
     public void makeWet() {
-        if (GameFunctions.isPlayerAliveAndSurvival(this.player))
-            this.wetTicks = GameConstants.SPRINKLER_GIVE_WET;
+        makeWet(true);
+    }
+
+    public void makeWet(boolean fromShower) {
+        if (GameFunctions.isPlayerAliveAndSurvival(this.player)) {
+            this.wetTicks = Math.max(this.wetTicks, fromShower ? GameConstants.SPRINKLER_GIVE_WET : GameConstants.NOT_SPRINKLER_GIVE_WET);
+            this.underShowerTicks = fromShower ? 5 : -1;
+        }
     }
 
     public boolean isUnderShower() {
-        return this.wetTicks + 5 > GameConstants.SPRINKLER_GIVE_WET;
+        return this.underShowerTicks > 0;
     }
 
     public void reset() {

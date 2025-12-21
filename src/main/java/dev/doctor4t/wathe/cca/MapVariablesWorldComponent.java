@@ -1,6 +1,7 @@
 package dev.doctor4t.wathe.cca;
 
 import dev.doctor4t.wathe.Wathe;
+import dev.doctor4t.wathe.game.GameConstants;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.util.math.Box;
@@ -38,6 +39,8 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
     Vec3i resetPasteOffset = new Vec3i(0, 55, 0);
 
     Box snowflakeCollider = new Box(-41.5, 126.0, -538.5, 169.5, 120, -532.5);
+    float moodGain = 0.25f;
+    float moodDrain = 1f / GameConstants.getInTicks(8, 0);
 
     public PosWithOrientation getSpawnPos() {
         return spawnPos;
@@ -133,6 +136,24 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
         this.sync();
     }
 
+    public float getMoodDrain() {
+        return moodDrain;
+    }
+
+    public void setMoodDrain(float moodDrain) {
+        this.moodDrain = moodDrain;
+        this.sync();
+    }
+
+    public float getMoodGain() {
+        return moodGain;
+    }
+
+    public void setMoodGain(float moodGain) {
+        this.moodGain = moodGain;
+        this.sync();
+    }
+
     @Override
     public void readFromNbt(@NotNull NbtCompound tag, RegistryWrapper.@NotNull WrapperLookup registryLookup) {
         this.spawnPos = getPosWithOrientationFromNbt(tag, "spawnPos");
@@ -155,6 +176,10 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
                     offTasks.add(PlayerMoodComponent.Task.values()[ord]);
             }
         }
+        if (tag.contains("moodDrain"))
+            this.moodDrain = tag.getFloat("moodDrain");
+        if (tag.contains("moodGain"))
+            this.moodGain = tag.getFloat("moodGain");
     }
 
     @Override
@@ -170,6 +195,8 @@ public class MapVariablesWorldComponent implements AutoSyncedComponent {
         tag.putInt("maxRoomKey", maxRoomKey);
         tag.putFloat("ambientBrightness", ambientBrightness);
         tag.putIntArray("offTasks", offTasks.stream().map(Enum::ordinal).toList());
+        tag.putFloat("moodGain", this.moodGain);
+        tag.putFloat("moodDrain", this.moodDrain);
     }
 
     public record PosWithOrientation(Vec3d pos, float yaw, float pitch) {

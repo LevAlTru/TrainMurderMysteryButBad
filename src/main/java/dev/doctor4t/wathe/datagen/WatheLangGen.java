@@ -68,6 +68,15 @@ public class WatheLangGen extends FabricLanguageProvider {
         builder.add("announcement.loose_ends.goal", "Tie all loose ends before they tie you. Good luck.");
         builder.add("announcement.loose_ends.winner", "%s Wins!");
 
+        builder.add("tip.letter.distant_cabin.name", "Dear %s, you're invited to my cabin on the forgotten mountain!");
+        builder.add("tip.letter.distant_cabin.tooltip1", "The way up will be long, but it will be worth it");
+        builder.add("tip.letter.distant_cabin.tooltip2", "because the party promises to be fun.");
+        builder.add("tip.letter.distant_cabin.tooltip3", "Your room is already assigned to you, don't forget the key in you envelope.");
+        builder.add("tip.letter.distant_cabin.room", "You will sleep in %s.");
+        builder.add("tip.letter.distant_cabin.room.sauna_cabin", "the Backwoods Sauna");
+        builder.add("tip.letter.distant_cabin.room.east_cabin", "the Eastern Cabin");
+        builder.add("tip.letter.distant_cabin.room.west_cabin", "the Western Cabin");
+
         builder.add("tip.letter.name", "Dear %s, welcome aboard the Harpy Express!");
         builder.add("tip.letter.room", "Please find attached your ticket as well as the key for accessing");
         builder.add("tip.letter.room.grand_suite", "the Grand Suite");

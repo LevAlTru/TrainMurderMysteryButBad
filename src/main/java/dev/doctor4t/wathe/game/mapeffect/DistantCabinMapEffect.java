@@ -1,8 +1,6 @@
 package dev.doctor4t.wathe.game.mapeffect;
 
 import dev.doctor4t.wathe.api.MapEffect;
-import dev.doctor4t.wathe.api.WatheMapEffects;
-import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.MapVariablesWorldComponent;
 import dev.doctor4t.wathe.cca.TrainWorldComponent;
 import dev.doctor4t.wathe.index.WatheItems;
@@ -20,36 +18,54 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public abstract class HarpyExpressTrainMapEffect extends MapEffect {
-    public HarpyExpressTrainMapEffect(Identifier identifier) {
+public class DistantCabinMapEffect extends MapEffect {
+    /**
+     * @param identifier the map effect identifier
+     */
+    public DistantCabinMapEffect(Identifier identifier) {
         super(identifier);
     }
 
     @Override
     public void initializeMapEffects(ServerWorld serverWorld, List<ServerPlayerEntity> players) {
         TrainWorldComponent trainWorldComponent = TrainWorldComponent.KEY.get(serverWorld);
-        trainWorldComponent.setSnow(true);
+        trainWorldComponent.setSnow(false);
         trainWorldComponent.setFog(true);
         trainWorldComponent.setHud(true);
-        trainWorldComponent.setSpeed(130);
+        trainWorldComponent.setSpeed(0);
         trainWorldComponent.setTime(0);
-
-        // select rooms
+        serverWorld.setWeather(0, 10000000, true, false);
         Collections.shuffle(players);
+
+        int firstRoomSkips = 2;
         int roomNumber = 0;
         for (ServerPlayerEntity serverPlayerEntity : players) {
             ItemStack itemStack = new ItemStack(WatheItems.KEY);
             roomNumber = roomNumber % MapVariablesWorldComponent.KEY.get(serverWorld).getMaxRoomKey() + 1;
+            if (roomNumber == 1 && firstRoomSkips > 0) {
+                roomNumber++;
+                firstRoomSkips--;
+            }
             int finalRoomNumber = roomNumber;
-            itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Room " + finalRoomNumber).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
+            String str = "Room " + finalRoomNumber;
+            switch (finalRoomNumber) {
+                case 1 -> str = "Backwoods Sauna";
+                case 2 -> str = "Eastern Cabin";
+                case 3 -> str = "Western Cabin";
+            }
+            final String finalStr = str;
+            itemStack.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal(finalStr).getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
+            ItemStack commonKey = new ItemStack(WatheItems.KEY);
+            commonKey.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> new LoreComponent(Text.literal("Guest").getWithStyle(Style.EMPTY.withItalic(false).withColor(0xFF8C00))));
             serverPlayerEntity.giveItemStack(itemStack);
+            serverPlayerEntity.giveItemStack(commonKey);
 
             // give letter
             ItemStack letter = new ItemStack(WatheItems.LETTER);
 
             letter.set(DataComponentTypes.ITEM_NAME, Text.translatable(letter.getTranslationKey()));
             int letterColor = 0xC5AE8B;
-            String tipString = "tip.letter.";
+            String tipString = "tip.letter.distant_cabin.";
             letter.apply(DataComponentTypes.LORE, LoreComponent.DEFAULT, component -> {
                         List<Text> text = new ArrayList<>();
                         UnaryOperator<Style> stylizer = style -> style.withItalic(false).withColor(letterColor);
@@ -61,15 +77,17 @@ public abstract class HarpyExpressTrainMapEffect extends MapEffect {
                         }
 
                         text.add(Text.translatable(tipString + "name", string).styled(style -> style.withItalic(false).withColor(0xFFFFFF)));
-                        text.add(Text.translatable(tipString + "room").styled(stylizer));
-                        text.add(Text.translatable(tipString + "tooltip1",
+                        text.add(Text.translatable(tipString + "tooltip1").styled(stylizer));
+                        text.add(Text.translatable(tipString + "tooltip2").styled(stylizer));
+                        text.add(Text.translatable(tipString + "tooltip3").styled(stylizer));
+                        text.add(Text.translatable(tipString + "room",
                                 Text.translatable(tipString + "room." + switch (finalRoomNumber) {
-                                    case 1 -> "grand_suite";
-                                    case 2, 3 -> "cabin_suite";
-                                    default -> "twin_cabin";
+                                    case 1 -> "sauna_cabin";
+                                    case 2 -> "east_cabin";
+                                    case 3 -> "west_cabin";
+                                    default -> "unknown";
                                 }).getString()
                         ).styled(stylizer));
-                        text.add(Text.translatable(tipString + "tooltip2").styled(stylizer));
 
                         return new LoreComponent(text);
                     }
@@ -80,10 +98,6 @@ public abstract class HarpyExpressTrainMapEffect extends MapEffect {
 
     @Override
     public void finalizeMapEffects(ServerWorld serverWorld, List<ServerPlayerEntity> players) {
-        // switch back to the lobby map effects
-        GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(serverWorld);
-        gameWorldComponent.setMapEffect(WatheMapEffects.HARPY_EXPRESS_LOBBY);
-        gameWorldComponent.getMapEffect().initializeMapEffects(serverWorld, players);
 
     }
 }

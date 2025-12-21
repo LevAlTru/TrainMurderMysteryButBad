@@ -88,7 +88,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public void clientTick() {
         if (!GameWorldComponent.KEY.get(this.player.getWorld()).isRunning() || !WatheClient.isPlayerAliveAndInSurvival())
             return;
-        if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
+        if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN.apply(this.player.getWorld()));
 
         if (this.isLowerThanMid()) {
             // imagine random items for players
@@ -120,7 +120,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public void serverTick() {
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
         if (!gameWorldComponent.isRunning() || !GameFunctions.isPlayerAliveAndSurvival(this.player)) return;
-        if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN);
+        if (!this.tasks.isEmpty()) this.setMood(this.mood - this.tasks.size() * GameConstants.MOOD_DRAIN.apply(this.player.getWorld()));
         boolean shouldSync = false;
         this.nextTaskTimer--;
         if (this.nextTaskTimer <= 0) {
@@ -139,7 +139,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
             task.tick(this.player);
             if (task.isFulfilled(this.player)) {
                 removals.add(task.getType());
-                this.setMood(this.mood + GameConstants.MOOD_GAIN);
+                this.setMood(this.mood + GameConstants.MOOD_GAIN.apply(this.player.getWorld()));
                 if (this.player instanceof ServerPlayerEntity tempPlayer)
                     ServerPlayNetworking.send(tempPlayer, new TaskCompletePayload());
                 shouldSync = true;
@@ -181,7 +181,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
         GameWorldComponent gameWorldComponent = GameWorldComponent.KEY.get(this.player.getWorld());
 
         Role role = gameWorldComponent.getRole(player);
-        if (gameWorldComponent.isRunning() && role != null && role.moodType() == Role.MoodType.REAL) {
+        if (gameWorldComponent.isRunning() && role != null && role.getMoodType() == Role.MoodType.REAL) {
             return this.mood;
         } else return 1;
     }
@@ -189,7 +189,7 @@ public class PlayerMoodComponent implements AutoSyncedComponent, ServerTickingCo
     public void setMood(float mood) {
         Role role = GameWorldComponent.KEY.get(this.player.getWorld()).getRole(player);
 
-        if (role != null && role.moodType() == Role.MoodType.REAL) {
+        if (role != null && role.getMoodType() == Role.MoodType.REAL) {
             this.mood = Math.clamp(mood, 0, 1);
         } else {
             this.mood = 1;

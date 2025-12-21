@@ -356,5 +356,13 @@
   "wathe.midnightconfig.enum.SnowModeConfig.NO_OPTIMIZATION": "Стандартный",
   "wathe.midnightconfig.enum.SnowModeConfig.TURN_OFF": "Выключить",
   "wathe.midnightconfig.snowOptLevel": "Режим частиц снега",
-  "wathe.midnightconfig.snowOptLevel.tooltip": "Режим обработки частиц снега.\n\n'Упрощенный' может не работать на всех картах."
+  "wathe.midnightconfig.snowOptLevel.tooltip": "Режим обработки частиц снега.\n\n'Упрощенный' может не работать на всех картах.",
+  "tip.letter.distant_cabin.name": "Дорогой %s, я приглашаю тебя в свою хижену на забытой горе!",
+  "tip.letter.distant_cabin.room": "Ты будешь спать в %s.",
+  "tip.letter.distant_cabin.room.sauna_cabin": "Сауне в Чаще",
+  "tip.letter.distant_cabin.room.east_cabin": "Восточной Хижине",
+  "tip.letter.distant_cabin.room.west_cabin": "Западной Хижине",
+  "tip.letter.distant_cabin.tooltip1": "путь наверх будет долгим, но оно будет того стоить,",
+  "tip.letter.distant_cabin.tooltip2": "потому что вечеринка обещает быть веселой.",
+  "tip.letter.distant_cabin.tooltip3": "Твоя хижена уже забронирована, не забудь ключ в конверте. <3"
 }

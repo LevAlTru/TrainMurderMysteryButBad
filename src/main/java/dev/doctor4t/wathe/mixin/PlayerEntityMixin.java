@@ -10,6 +10,7 @@ import dev.doctor4t.wathe.api.event.AllowPlayerPunching;
 import dev.doctor4t.wathe.cca.GameWorldComponent;
 import dev.doctor4t.wathe.cca.PlayerMoodComponent;
 import dev.doctor4t.wathe.cca.PlayerPoisonComponent;
+import dev.doctor4t.wathe.cca.PlayerWetComponent;
 import dev.doctor4t.wathe.game.GameConstants;
 import dev.doctor4t.wathe.game.GameFunctions;
 import dev.doctor4t.wathe.index.WatheDataComponentTypes;
@@ -69,18 +70,28 @@ public abstract class PlayerEntityMixin extends LivingEntity {
     @Inject(method = "tickMovement", at = @At("HEAD"))
     public void wathe$limitSprint(CallbackInfo ci) {
         GameWorldComponent gameComponent = GameWorldComponent.KEY.get(this.getWorld());
-        if (GameFunctions.isPlayerAliveAndSurvival((PlayerEntity) (Object) this) && gameComponent != null && gameComponent.isRunning()) {
-            Role role = gameComponent.getRole((PlayerEntity) (Object) this);
-            if (role != null && role.maxSprintTime() >= 0) {
-                if (this.isSprinting()) {
-                    sprintingTicks = Math.max(sprintingTicks - 1, 0);
-                } else {
-                    sprintingTicks = Math.min(sprintingTicks + 0.25f, role.maxSprintTime());
-                }
-
-                if (sprintingTicks <= 0) {
+        if (GameFunctions.isPlayerAliveAndSurvival((PlayerEntity) (Object) this)) {
+            PlayerWetComponent wet = PlayerWetComponent.get((PlayerEntity) (Object) this);
+            if (gameComponent != null && gameComponent.isRunning()) {
+                if (wet.isWet()) {
                     this.setSprinting(false);
+                } else {
+                    Role role = gameComponent.getRole((PlayerEntity) (Object) this);
+                    if (role != null && role.getMaxSprintTime() >= 0) {
+                        if (this.isSprinting()) {
+                            sprintingTicks = Math.max(sprintingTicks - 1, 0);
+                        } else {
+                            sprintingTicks = Math.min(sprintingTicks + 0.25f, role.getMaxSprintTime());
+                        }
+
+                        if (sprintingTicks <= 0) {
+                            this.setSprinting(false);
+                        }
+                    }
                 }
+            }
+            if (this.isTouchingWater()) {
+                wet.makeWet(false);
             }
         }
     }

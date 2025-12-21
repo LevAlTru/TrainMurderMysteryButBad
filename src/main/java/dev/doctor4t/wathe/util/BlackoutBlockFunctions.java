@@ -71,7 +71,7 @@ public interface BlackoutBlockFunctions {
         static void init(@NotNull World world, WorldBlackoutComponent.BlackoutDetails detail) {
             BlockState state = world.getBlockState(detail.pos);
             if (!state.contains(WatheProperties.OPAQUE) || !state.contains(WatheProperties.ACTIVE)) return;
-            detail.data = (byte) (state.get(WatheProperties.OPAQUE) ? 1 : 0);
+            detail.data = (byte) ((state.get(WatheProperties.OPAQUE) ? 1 : 0) | (state.get(WatheProperties.ACTIVE) ? 2 : 0));
             world.setBlockState(detail.pos, state.with(WatheProperties.OPAQUE, true).with(WatheProperties.ACTIVE, false));
 //            playsound(detail, world, TMMSounds.BLOCK_PRIVACY_PANEL_TOGGLE, 0.5f, 1f);
         }
@@ -79,7 +79,7 @@ public interface BlackoutBlockFunctions {
         static void end(@NotNull World world, WorldBlackoutComponent.BlackoutDetails detail) {
             BlockState state = world.getBlockState(detail.pos);
             if (!state.contains(WatheProperties.OPAQUE) || !state.contains(WatheProperties.ACTIVE)) return;
-            world.setBlockState(detail.pos, state.with(WatheProperties.OPAQUE, (detail.data & 1) == 1).with(WatheProperties.ACTIVE, true));
+            world.setBlockState(detail.pos, state.with(WatheProperties.OPAQUE, (detail.data & 1) == 1).with(WatheProperties.ACTIVE, (detail.data & 2) == 2));
             playsound(detail, world, WatheSounds.BLOCK_PRIVACY_PANEL_TOGGLE, 0.1f, 0.8f);
         }
 

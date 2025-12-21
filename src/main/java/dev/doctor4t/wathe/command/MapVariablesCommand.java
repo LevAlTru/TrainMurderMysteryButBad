@@ -165,32 +165,42 @@ public class MapVariablesCommand {
                                         )
                                 )
                         )
-                        .then(CommandManager.literal("tasks")
-                                .executes(ctx -> print(ctx, Arrays.stream(PlayerMoodComponent.Task.values()).map(it -> it.toString() + (getMapVarsComponent(ctx).offTasks.contains(it) ? ":off" : "")).collect(Collectors.joining(", "))))
-                                .then(CommandManager.argument("task", StringArgumentType.string())
-                                        .executes(ctx -> {
-                                                    try {
-                                                        PlayerMoodComponent.Task task = PlayerMoodComponent.Task.valueOf(StringArgumentType.getString(ctx, "task"));
-                                                        ArrayList<PlayerMoodComponent.Task> offTasks = getMapVarsComponent(ctx).offTasks;
-                                                        if (!offTasks.remove(task))
-                                                            offTasks.add(task);
-                                                    } catch (Exception e) {
-                                                        ctx.getSource().sendError(Text.literal("Enum name incorrect. Nothing changed"));
-                                                        return 0;
-                                                    }
-                                                    return 1;
-                                                }
+                        .then(CommandManager.literal("meow")
+                                .then(CommandManager.literal("tasks")
+                                        .executes(ctx -> print(ctx, Arrays.stream(PlayerMoodComponent.Task.values()).map(it -> it.toString() + (getMapVarsComponent(ctx).offTasks.contains(it) ? ":off" : "")).collect(Collectors.joining(", "))))
+                                        .then(CommandManager.argument("task", StringArgumentType.string())
+                                                .executes(ctx -> {
+                                                            try {
+                                                                PlayerMoodComponent.Task task = PlayerMoodComponent.Task.valueOf(StringArgumentType.getString(ctx, "task"));
+                                                                ArrayList<PlayerMoodComponent.Task> offTasks = getMapVarsComponent(ctx).offTasks;
+                                                                if (!offTasks.remove(task))
+                                                                    offTasks.add(task);
+                                                            } catch (Exception e) {
+                                                                ctx.getSource().sendError(Text.literal("Enum name incorrect. Nothing changed"));
+                                                                return 0;
+                                                            }
+                                                            return 1;
+                                                        }
+                                                )
                                         )
                                 )
+                                .then(CommandManager.literal("maxRoomKeys")
+                                        .executes(ctx -> print(ctx, "There is " + MapVariablesWorldComponent.KEY.get(ctx.getSource().getWorld()).getMaxRoomKey() + " unique room keys"))
+                                        .then(CommandManager.argument("maxKeys", IntegerArgumentType.integer(1))
+                                                .executes(ctx -> execute(ctx.getSource(), MapVariablesWorldComponent::setMaxRoomKey, IntegerArgumentType.getInteger(ctx, "maxKeys")))))
+                                .then(CommandManager.literal("ambientBrightness")
+                                        .executes(ctx -> print(ctx, "Brightness is " + MapVariablesWorldComponent.KEY.get(ctx.getSource().getWorld()).getAmbientBrightness()))
+                                        .then(CommandManager.argument("bright", FloatArgumentType.floatArg(0))
+                                                .executes(ctx -> execute(ctx.getSource(), MapVariablesWorldComponent::setAmbientBrightness, FloatArgumentType.getFloat(ctx, "bright")))))
+                                .then(CommandManager.literal("moodDrain")
+                                        .executes(ctx -> print(ctx, "Mood Drain is " + MapVariablesWorldComponent.KEY.get(ctx.getSource().getWorld()).getMoodDrain()))
+                                        .then(CommandManager.argument("minutes", FloatArgumentType.floatArg(0))
+                                                .executes(ctx -> execute(ctx.getSource(), MapVariablesWorldComponent::setMoodDrain, 1f / (FloatArgumentType.getFloat(ctx, "minutes") * 20 * 60)))))
+                                .then(CommandManager.literal("moodGain")
+                                        .executes(ctx -> print(ctx, "Mood Gain is " + MapVariablesWorldComponent.KEY.get(ctx.getSource().getWorld()).getMoodGain()))
+                                        .then(CommandManager.argument("percent", FloatArgumentType.floatArg(0, 1))
+                                                .executes(ctx -> execute(ctx.getSource(), MapVariablesWorldComponent::setMoodGain, FloatArgumentType.getFloat(ctx, "percent")))))
                         )
-                        .then(CommandManager.literal("maxRoomKeys")
-                                .executes(ctx -> print(ctx, "There is " + MapVariablesWorldComponent.KEY.get(ctx.getSource().getWorld()).getMaxRoomKey() + " unique room keys"))
-                                .then(CommandManager.argument("maxKeys", IntegerArgumentType.integer(1))
-                                        .executes(ctx -> execute(ctx.getSource(), MapVariablesWorldComponent::setMaxRoomKey, IntegerArgumentType.getInteger(ctx, "maxKeys")))))
-                        .then(CommandManager.literal("ambientBrightness")
-                                .executes(ctx -> print(ctx, "Brightness is " + MapVariablesWorldComponent.KEY.get(ctx.getSource().getWorld()).getAmbientBrightness()))
-                                .then(CommandManager.argument("bright", FloatArgumentType.floatArg(0))
-                                        .executes(ctx -> execute(ctx.getSource(), MapVariablesWorldComponent::setAmbientBrightness, FloatArgumentType.getFloat(ctx, "bright")))))
         );
     }
 

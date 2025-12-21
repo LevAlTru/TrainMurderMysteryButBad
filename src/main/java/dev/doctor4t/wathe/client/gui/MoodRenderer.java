@@ -92,9 +92,9 @@ public class MoodRenderer {
         }
         Role role = gameWorldComponent.getRole(player);
         if (role != null) {
-            if (role.moodType() == Role.MoodType.FAKE) {
+            if (role.getMoodType() == Role.MoodType.FAKE) {
                 renderKiller(textRenderer, context);
-            } else if (role.moodType() == Role.MoodType.REAL) {
+            } else if (role.getMoodType() == Role.MoodType.REAL) {
                 renderCivilian(textRenderer, context, oldMood);
             }
         }

@@ -24,16 +24,13 @@ public class PrivacyGlassBlock extends TransparentBlock implements PrivacyBlock,
         this.setDefaultState(super.getDefaultState()
                 .with(ACTIVE, true)
                 .with(OPAQUE, false)
-                .with(INTERACTION_COOLDOWN, false));
+                /*.with(INTERACTION_COOLDOWN, false)*/);
     }
 
     @Override
     protected ActionResult onUse(BlockState state, World world, BlockPos pos, PlayerEntity player, BlockHitResult hit) {
         if (!player.shouldCancelInteraction() && !player.getMainHandStack().isOf(this.asItem()) && this.canInteract(state, pos, world, player, Hand.MAIN_HAND)) {
-
-            this.toggle(state, world, pos);
-
-            return ActionResult.success(world.isClient);
+            return this.toggle(state, world, pos) ? ActionResult.success(world.isClient) : ActionResult.PASS;
         }
 
         return super.onUse(state, world, pos, player, hit);
@@ -41,12 +38,12 @@ public class PrivacyGlassBlock extends TransparentBlock implements PrivacyBlock,
 
     @Override
     public void scheduledTick(BlockState state, ServerWorld world, BlockPos pos, Random random) {
-        this.toggle(state, world, pos);
+        this.toggle(state, world, pos, state.get(OPAQUE));
     }
 
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
-        builder.add(OPAQUE, INTERACTION_COOLDOWN, ACTIVE);
+        builder.add(OPAQUE, /*INTERACTION_COOLDOWN, */ACTIVE);
     }
 
     @Override

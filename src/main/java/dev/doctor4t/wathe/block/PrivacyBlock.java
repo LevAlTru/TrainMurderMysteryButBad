@@ -19,7 +19,7 @@ public interface PrivacyBlock {
 
     BooleanProperty ACTIVE = WatheProperties.ACTIVE;
     BooleanProperty OPAQUE = WatheProperties.OPAQUE;
-    BooleanProperty INTERACTION_COOLDOWN = WatheProperties.INTERACTION_COOLDOWN;
+    //    BooleanProperty INTERACTION_COOLDOWN = WatheProperties.INTERACTION_COOLDOWN;
     Direction[][] DIAGONALS = new Direction[][]{
             new Direction[]{Direction.NORTH, Direction.EAST},
             new Direction[]{Direction.SOUTH, Direction.EAST},
@@ -38,24 +38,28 @@ public interface PrivacyBlock {
     int DELAY = 1;
     int COOLDOWN = 20;
 
-    default void toggle(BlockState state, World world, BlockPos pos) {
-        if (!canToggle(state)) return;
-        boolean opaque = !state.get(OPAQUE);
-        if (state.get(INTERACTION_COOLDOWN)) {
-            world.setBlockState(pos, state.with(INTERACTION_COOLDOWN, false));
-            return;
-        } else {
-            world.playSound(null, pos, WatheSounds.BLOCK_PRIVACY_PANEL_TOGGLE, SoundCategory.BLOCKS, 0.1f, opaque ? 1.0f : 1.2f);
-        }
+    default boolean toggle(BlockState state, World world, BlockPos pos) {
+        return toggle(state, world, pos, !state.get(OPAQUE));
+    }
 
-        world.setBlockState(pos, state.with(OPAQUE, opaque).with(INTERACTION_COOLDOWN, true));
-        world.scheduleBlockTick(pos, state.getBlock(), COOLDOWN);
+    default boolean toggle(BlockState state, World world, BlockPos pos, boolean opaque) {
+        if (!canToggle(state)) return false;
+//        if (state.get(INTERACTION_COOLDOWN)) {
+//            world.setBlockState(pos, state.with(INTERACTION_COOLDOWN, false));
+//            return;
+//        } else {
+        world.playSound(null, pos, WatheSounds.BLOCK_PRIVACY_PANEL_TOGGLE, SoundCategory.BLOCKS, 0.1f, opaque ? 1.0f : 1.2f);
+//        }
+
+        world.setBlockState(pos, state.with(OPAQUE, opaque)/*.with(INTERACTION_COOLDOWN, true)*/);
+//        world.scheduleBlockTick(pos, state.getBlock(), COOLDOWN);
         Set<Direction> changedDirections = EnumSet.noneOf(Direction.class);
         for (Direction direction : Direction.values()) {
             BlockPos sidePos = pos.offset(direction);
             BlockState sideState = world.getBlockState(sidePos);
             if (this.canToggle(sideState) && sideState.get(OPAQUE) != opaque) {
                 changedDirections.add(direction);
+                world.setBlockState(sidePos, sideState.with(OPAQUE, opaque));
                 world.scheduleBlockTick(sidePos, sideState.getBlock(), DELAY);
             }
         }
@@ -64,9 +68,11 @@ public interface PrivacyBlock {
             BlockPos diagonalPos = this.offsetDiagonal(pos, diagonal);
             BlockState diagonalState = world.getBlockState(diagonalPos);
             if (this.canToggle(diagonalState) && diagonalState.get(OPAQUE) != opaque) {
+                world.setBlockState(diagonalPos, diagonalState.with(OPAQUE, opaque));
                 world.scheduleBlockTick(diagonalPos, diagonalState.getBlock(), DELAY);
             }
         }
+        return true;
     }
 
     default boolean diagonalHasAdjacentBlock(Direction[] diagonal, Set<Direction> changedDirections) {
@@ -78,17 +84,17 @@ public interface PrivacyBlock {
     }
 
     default boolean canInteract(BlockState state, BlockPos pos, World world, PlayerEntity player, Hand hand) {
-        if (state.get(INTERACTION_COOLDOWN)) return false;
+//        if (state.get(INTERACTION_COOLDOWN)) return false;
         if (player.getStackInHand(hand).getItem() instanceof SpyglassItem) return false;
-        for (Direction direction : Direction.values()) {
-            BlockState sideState = world.getBlockState(pos.offset(direction));
-            if (sideState.contains(INTERACTION_COOLDOWN) && sideState.get(INTERACTION_COOLDOWN)) return false;
-        }
-        for (Direction[] diagonal : DIAGONALS) {
-            BlockPos diagonalPos = this.offsetDiagonal(pos, diagonal);
-            BlockState diagonalState = world.getBlockState(diagonalPos);
-            if (diagonalState.contains(INTERACTION_COOLDOWN) && diagonalState.get(INTERACTION_COOLDOWN)) return false;
-        }
+//        for (Direction direction : Direction.values()) {
+//            BlockState sideState = world.getBlockState(pos.offset(direction));
+//            if (sideState.contains(INTERACTION_COOLDOWN) && sideState.get(INTERACTION_COOLDOWN)) return false;
+//        }
+//        for (Direction[] diagonal : DIAGONALS) {
+//            BlockPos diagonalPos = this.offsetDiagonal(pos, diagonal);
+//            BlockState diagonalState = world.getBlockState(diagonalPos);
+//            if (diagonalState.contains(INTERACTION_COOLDOWN) && diagonalState.get(INTERACTION_COOLDOWN)) return false;
+//        }
         return true;
     }
 
